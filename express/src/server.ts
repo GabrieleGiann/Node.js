@@ -1,50 +1,40 @@
-import express from "express";
-import morgan from "morgan";
+// src/server.ts
+
 import dotenv from "dotenv";
 dotenv.config();
 
+import express from "express";
+import morgan from "morgan";
+import planetsRouter from "./routes/routes.js"; // <-- Importa il router dei pianeti
+
 const app = express();
-const port = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-type Planet = {
-  id: number;
-  name: string;
-};
+// --- Rotte API ---
+// Usa il router dei pianeti per tutte le rotte che iniziano con /api/planets
+app.use("/api/planets", planetsRouter); // <-- AGGIUNGI QUESTA RIGA
 
-type Planets = Planet[];
-
-let planets: Planets = [
-  {
-    id: 1,
-    name: "Earth",
-  },
-  {
-    id: 2,
-    name: "Mars",
-  },
-];
-
-app.get("/api/planets", (req, res) => {
-  res.status(200).json(planets);
+// Rotta di esempio per la homepage (già presente)
+app.get("/", (req, res) => {
+  res.send("Benvenuto nel mio server TypeScript!");
 });
 
-app.get("/api/planets/:id", (req, res) => {
-  const { id } = req.params;
-  const planet = planets.find((p) => p.id === Number(id));
-  res.status(200).json(planet);
+// Rotta di esempio /info (già presente)
+app.get("/info", (req, res) => {
+  res.json({
+    message: "Informazioni sul server",
+    port: PORT,
+    environment: process.env.NODE_ENV,
+    databaseHost: process.env.DB_HOST,
+  });
 });
 
-app.post("/api/planets", (req, res) => {
-  const { id, name } = req.body;
-  const newPlanet: Planet = { id, name };
-  planets = [...planets, newPlanet];
-
-  res.status(201).json({ msg: "Il pianeta è stato aggiunto con successo!" });
-});
-
-app.listen(port, () => {
-  console.log(`app working http://localhost:${port}`);
+// Avvia il Server
+app.listen(PORT, () => {
+  console.log(`Server in ascolto sulla porta ${PORT}`);
+  console.log(`URL: http://localhost:${PORT}`);
 });
